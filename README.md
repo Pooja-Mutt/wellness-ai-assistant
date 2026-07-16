@@ -4,6 +4,11 @@ An embeddable AI chat widget that answers general health and wellness questions
 (nutrition, exercise, sleep, healthy habits, common symptoms) in a natural,
 conversational way — with built-in medical disclaimers and no diagnosis claims.
 
+🔗 **Live demo:** https://wellness-ai-assistant.onrender.com
+*(hosted on a free tier — the first message may take 30-50 seconds if it's been idle)*
+
+Click the chat bubble in the bottom-right corner of the demo to try it.
+
 ## What's included
 
 - `backend/` — FastAPI server that talks to OpenAI and keeps conversation
