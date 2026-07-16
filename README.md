@@ -8,7 +8,7 @@ conversational way — with built-in medical disclaimers and no diagnosis claims
 *(hosted on a free tier — the first message may take 30-50 seconds if it's been idle)*
 
 Click the chat bubble in the bottom-right corner of the demo to try it.
-
+![Wellness Assistant chat widget](screenshot.png)
 ## What's included
 
 - `backend/` — FastAPI server that talks to OpenAI and keeps conversation
