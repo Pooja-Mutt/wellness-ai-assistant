@@ -19,10 +19,22 @@ ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*")
 MAX_HISTORY_MESSAGES = 12
 SESSION_TTL_SECONDS = 60 * 60 * 2
 
-if not OPENAI_API_KEY:
+# When true, the /api/chat endpoint never calls OpenAI - it returns a canned
+# message pointing to the GitHub source instead. Protects API credits on a
+# publicly-shared demo link. Flip to "false" in Render's env vars whenever
+# you want to demo real live responses.
+DEMO_MODE = os.getenv("DEMO_MODE", "true").lower() == "true"
+
+DEMO_MODE_REPLY = (
+    "Thanks for trying this out! Live AI responses are turned off on this public demo link "
+    "to protect API costs. You can see the full working source code (and run it yourself with "
+    "your own API key) here: https://github.com/Pooja-Mutt/wellness-ai-assistant"
+)
+
+if not OPENAI_API_KEY and not DEMO_MODE:
     raise RuntimeError("OPENAI_API_KEY is not set. Copy .env.example to .env and add your key.")
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 SYSTEM_PROMPT = """You are Wellness Assistant, a friendly and knowledgeable AI chat assistant embedded on a health and wellness website.
 
@@ -80,7 +92,7 @@ def _get_session(session_id: str | None) -> tuple[str, Dict]:
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "model": OPENAI_MODEL, "active_sessions": len(sessions)}
+    return {"status": "ok", "model": OPENAI_MODEL, "demo_mode": DEMO_MODE, "active_sessions": len(sessions)}
 
 
 @app.post("/api/chat", response_model=ChatResponse)
@@ -90,6 +102,11 @@ def chat(req: ChatRequest) -> ChatResponse:
 
     history.append({"role": "user", "content": req.message})
     history = history[-MAX_HISTORY_MESSAGES:]
+
+    if DEMO_MODE:
+        session["messages"] = history[-MAX_HISTORY_MESSAGES:]
+        session["last_seen"] = time.time()
+        return ChatResponse(session_id=session_id, reply=DEMO_MODE_REPLY)
 
     messages = [{"role": "system", "content": SYSTEM_PROMPT}] + history
 
